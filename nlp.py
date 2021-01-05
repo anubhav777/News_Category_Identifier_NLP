@@ -6,6 +6,8 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import matplotlib.pyplot as plt
 from nltk.stem import WordNetLemmatizer
+from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
 
 df=pd.read_json('News_Category_Dataset_v2.json',lines=True)
 data=df.drop(['authors','link','short_description','date'],axis=1)
@@ -49,3 +51,23 @@ webscrape1=webscrape(news_href)
 all_news = webscrape1.word_filter()
 all_news=list(set(all_news))
 gh=pd.DataFrame(all_news)
+
+ps=WordNetLemmatizer()
+stemmed_news=[]
+
+new_data = X_train=data['headline'].tolist()
+X_train = webscrape.text_filter(new_data)
+X_test = webscrape.text_filter(all_news)
+
+cv=CountVectorizer()
+train= cv.fit_transform(X_train)
+test = cv.transform(X_test)
+
+mb=MultinomialNB(alpha=0.7)
+y_train=df['category']
+mb.fit(train,y_train)
+mb_pred=mb.predict(test)
+
+tr=pd.DataFrame({'title':all_news,'category':mb_pred})
+
+print(tr[tr['category'] == 'SPORTS'])
